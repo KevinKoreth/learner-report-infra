@@ -1,0 +1,15 @@
+frontend:
+  image: "your-dockerhub-username/learner-report-cs-fe:latest"
+  replicas: 2
+  apiBaseUrl: "https://api.example.com"
+  servicePort: 81
+
+backend:
+  image: "your-dockerhub-username/learner-report-cs-be:latest"
+  replicas: 2
+  servicePort: 80
+
+secrets:
+  atlasUri: ""
+  hashKey: "thisIsMyHashKey"
+  jwtSecretKey: "thisIsMyJwtSecretKey"

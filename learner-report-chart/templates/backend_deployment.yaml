@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learner-report-cs-be
+  labels:
+    app: learner-report-cs-be
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: learner-report-cs-be
+  template:
+    metadata:
+      labels:
+        app: learner-report-cs-be
+    spec:
+      containers:
+        - name: learner-report-cs-be
+          image: {{ .Values.backend.image }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: ATLAS_URI
+              valueFrom:
+                secretKeyRef:
+                  name: learner-report-cs-be-secrets
+                  key: ATLAS_URI
+            - name: HASH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: learner-report-cs-be-secrets
+                  key: HASH_KEY
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: learner-report-cs-be-secrets
+                  key: JWT_SECRET_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: learner-report-cs-be-service
+spec:
+  selector:
+    app: learner-report-cs-be
+  ports:
+    - protocol: TCP
+      port: {{ .Values.backend.servicePort }}
+      targetPort: 3000
+  type: ClusterIP
