@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = "ap-south-1" // change to your region
+        AWS_REGION = "ap-south-1"
         ECR_REPO_FE = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/learner-report-cs-fe"
         ECR_REPO_BE = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/learner-report-cs-be"
         K8S_NAMESPACE = "learner-report"
         HELM_RELEASE = "learner-report"
         CHART_PATH = "learner-report-chart"
-        AWS_CREDENTIALS_ID = "aws-creds"           // AWS access key + secret in Jenkins credentials
-        KUBECONFIG_CREDENTIALS_ID = "kubeconfig"   // Jenkins file credential for kubeconfig
+        AWS_CREDENTIALS_ID = "aws-creds"
+        KUBECONFIG_CREDENTIALS_ID = "kubeconfig"
     }
 
     stages {
@@ -22,12 +22,10 @@ pipeline {
         stage('Login to ECR') {
             steps {
                 withAWS(region: "${AWS_REGION}", credentials: "${AWS_CREDENTIALS_ID}") {
-                    script {
-                        sh '''
-                            aws ecr get-login-password --region $AWS_REGION \
-                                | docker login --username AWS --password-stdin $(echo $ECR_REPO_FE | cut -d'/' -f1)
-                        '''
-                    }
+                    sh '''
+                        aws ecr get-login-password --region $AWS_REGION \
+                            | docker login --username AWS --password-stdin $(echo $ECR_REPO_FE | cut -d'/' -f1)
+                    '''
                 }
             }
         }
@@ -46,6 +44,28 @@ pipeline {
                         script {
                             docker.build("${ECR_REPO_BE}:latest", "backend/").push("latest")
                         }
+                    }
+                }
+            }
+        }
+
+        stage('Create/Update Kubernetes Secret') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'ATLAS_URI', variable: 'ATLAS_URI'),
+                    string(credentialsId: 'HASH_KEY', variable: 'HASH_KEY'),
+                    string(credentialsId: 'JWT_SECRET_KEY', variable: 'JWT_SECRET_KEY')
+                ]) {
+                    withCredentials([file(credentialsId: KUBECONFIG_CREDENTIALS_ID, variable: 'KUBECONFIG_FILE')]) {
+                        sh '''
+                            export KUBECONFIG=$KUBECONFIG_FILE
+                            kubectl create secret generic learner-report-cs-be-secrets \
+                              --from-literal=ATLAS_URI="$ATLAS_URI" \
+                              --from-literal=HASH_KEY="$HASH_KEY" \
+                              --from-literal=JWT_SECRET_KEY="$JWT_SECRET_KEY" \
+                              -n $K8S_NAMESPACE \
+                              --dry-run=client -o yaml | kubectl apply -f -
+                        '''
                     }
                 }
             }
