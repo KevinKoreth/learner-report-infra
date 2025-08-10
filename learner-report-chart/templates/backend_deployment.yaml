@@ -15,6 +15,8 @@ spec:
         app: learner-report-cs-be
     spec:
       automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ecr-pull-secret
       containers:
         - name: learner-report-cs-be
           image: {{ .Values.backend.image }}
