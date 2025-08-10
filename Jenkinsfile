@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        ECR_REPO_FE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-front-end:latest"
-        ECR_REPO_BE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-backend:latest"
+        ECR_REPO_FE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-front-end"
+        ECR_REPO_BE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-backend"
         K8S_NAMESPACE = "learner-report"
         HELM_RELEASE = "learner-report"
         CHART_PATH = "learner-report-chart"
@@ -68,7 +68,8 @@ pipeline {
                             --namespace $K8S_NAMESPACE \
                             --create-namespace \
                             --set frontend.image=$ECR_REPO_FE:latest \
-                            --set backend.image=$ECR_REPO_BE:latest
+                            --set backend.image=$ECR_REPO_BE:latest \
+                            --replace
                     '''
                 }
             }
