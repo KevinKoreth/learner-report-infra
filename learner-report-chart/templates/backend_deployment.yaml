@@ -14,7 +14,6 @@ spec:
       labels:
         app: learner-report-cs-be
     spec:
-      automountServiceAccountToken: false
       imagePullSecrets:
         - name: ecr-pull-secret
       containers:

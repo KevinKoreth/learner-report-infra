@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        ECR_REPO_FE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-front-end"
-        ECR_REPO_BE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-backend"
+        ECR_REPO_FE = "645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-front-end"
+        ECR_REPO_BE = "645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-backend"
         K8S_NAMESPACE = "learner-report"
         HELM_RELEASE = "learner-report"
         CHART_PATH = "learner-report-chart"
