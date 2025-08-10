@@ -69,7 +69,6 @@ pipeline {
                             --create-namespace \
                             --set frontend.image=$ECR_REPO_FE:latest \
                             --set backend.image=$ECR_REPO_BE:latest \
-                            --replace
                     '''
                 }
             }
