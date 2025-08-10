@@ -36,16 +36,3 @@ spec:
                 secretKeyRef:
                   name: learner-report-cs-be-secrets
                   key: JWT_SECRET_KEY
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: learner-report-cs-be-service
-spec:
-  selector:
-    app: learner-report-cs-be
-  ports:
-    - protocol: TCP
-      port: {{ .Values.backend.servicePort }}
-      targetPort: 3000
-  type: ClusterIP
