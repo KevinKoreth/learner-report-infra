@@ -14,6 +14,7 @@ spec:
       labels:
         app: learner-report-cs-be
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: learner-report-cs-be
           image: {{ .Values.backend.image }}

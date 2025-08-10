@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         AWS_REGION = "ap-south-1"
-        ECR_REPO_FE = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/learner-report-cs-fe"
-        ECR_REPO_BE = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/learner-report-cs-be"
+        ECR_REPO_FE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-front-end:latest"
+        ECR_REPO_BE = "1645443951666.dkr.ecr.ap-south-1.amazonaws.com/learner-report-backend:latest"
         K8S_NAMESPACE = "learner-report"
         HELM_RELEASE = "learner-report"
         CHART_PATH = "learner-report-chart"
@@ -19,37 +19,25 @@ pipeline {
             }
         }
 
-        stage('Login to ECR') {
+        stage('Login to ECR & Create Pull Secret') {
             steps {
                 withAWS(region: "${AWS_REGION}", credentials: "${AWS_CREDENTIALS_ID}") {
-                    sh '''
-                        aws ecr get-login-password --region $AWS_REGION \
-                            | docker login --username AWS --password-stdin $(echo $ECR_REPO_FE | cut -d'/' -f1)
-                    '''
-                }
-            }
-        }
-
-        stage('Build & Push Docker Images') {
-            parallel {
-                stage('Frontend') {
-                    steps {
-                        script {
-                            docker.build("${ECR_REPO_FE}:latest", "frontend/").push("latest")
-                        }
-                    }
-                }
-                stage('Backend') {
-                    steps {
-                        script {
-                            docker.build("${ECR_REPO_BE}:latest", "backend/").push("latest")
-                        }
+                    withCredentials([file(credentialsId: KUBECONFIG_CREDENTIALS_ID, variable: 'KUBECONFIG_FILE')]) {
+                        sh '''
+                            export KUBECONFIG=$KUBECONFIG_FILE
+                            kubectl create secret docker-registry ecr-pull-secret \
+                              --docker-server=$(echo $ECR_REPO_FE | cut -d'/' -f1) \
+                              --docker-username=AWS \
+                              --docker-password="$(aws ecr get-login-password --region $AWS_REGION)" \
+                              -n $K8S_NAMESPACE \
+                              --dry-run=client -o yaml | kubectl apply -f -
+                        '''
                     }
                 }
             }
         }
 
-        stage('Create/Update Kubernetes Secret') {
+        stage('Create/Update Backend App Secrets') {
             steps {
                 withCredentials([
                     string(credentialsId: 'ATLAS_URI', variable: 'ATLAS_URI'),
@@ -71,7 +59,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Kubernetes with Helm') {
             steps {
                 withCredentials([file(credentialsId: KUBECONFIG_CREDENTIALS_ID, variable: 'KUBECONFIG_FILE')]) {
                     sh '''
