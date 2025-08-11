@@ -1,7 +1,7 @@
 frontend:
   image: "CHANGEME"
   replicas: 2
-  apiBaseUrl: "http://localhost:3001"
+  apiBaseUrl: "ws://learner-report-cs-be-service:3000"
   servicePort: 81
 
 backend:
